@@ -5,21 +5,36 @@ import java.util.TreeMap;
 
 import me.capit.entropy.EntropyLoader;
 import me.capit.entropy.Registerable;
+import me.capit.entropy.Registrar;
 import me.capit.urbanization.Urbanization;
+import me.capit.urbanization.group.Group;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
-public abstract class AbstractCity implements ConfigurationSerializable, Registerable {
+public class City implements ConfigurationSerializable, Registerable {
 	private static final long serialVersionUID = -317734004326108165L;
+	public static final short maxGroups = 255;
+	public static final int rankZeros = 3;
 	
 	private String name,tag,motd,desc;
+	private Registrar<Group> groups = new Registrar<Group>();
 	
-	public AbstractCity(Map<String,Object> data) throws ClassCastException, NullPointerException, IllegalArgumentException{
+	public City(String name){
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public City(Map<String,Object> data) throws ClassCastException, NullPointerException, IllegalArgumentException{
 		setName((String) data.get("NAME"));
 		
 		setTag(data.containsKey("TAG") ? (String) data.get("TAG") : null);
 		setMOTD(data.containsKey("MOTD") ? (String) data.get("MOTD") : null);
 		setDescription(data.containsKey("DESC") ? (String) data.get("DESC") : null);
+		
+		Map<String,Object> groupMap = (Map<String,Object>) data.get("GROUPS");
+		for (String k : groupMap.keySet()){
+			groups.register((Group) groupMap.get(k));
+		}
 	}
 	
 	// NAME DATA
@@ -79,6 +94,13 @@ public abstract class AbstractCity implements ConfigurationSerializable, Registe
 		Map<String,Object> data = new TreeMap<String,Object>();
 		data.put("NAME", name); data.put("TAG", tag);
 		data.put("MOTD", motd); data.put("DESC", desc);
+		
+		Map<String,Object> groupMap = new TreeMap<String,Object>();
+		for (Group g : groups.getRegistered()){
+			groupMap.put(g.getUniqueString(), g);
+		}
+		data.put("GROUPS", groupMap);
+		
 		return data;
 	}
 

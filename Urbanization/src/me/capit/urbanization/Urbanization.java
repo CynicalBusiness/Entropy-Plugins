@@ -6,14 +6,22 @@ import java.util.TreeMap;
 import me.capit.entropy.Registrar;
 import me.capit.entropy.module.EntropyModule;
 import me.capit.entropy.module.ModuleMeta;
-import me.capit.urbanization.city.AbstractCity;
+import me.capit.urbanization.city.City;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Urbanization extends EntropyModule {
 	private static final long serialVersionUID = -7024584539096221029L;
 	
-	public static Registrar<AbstractCity> cities = new Registrar<AbstractCity>();
+	public static String addZerosToLength(String num, int zeros){
+		if (num.length()>=zeros) return num;
+		for (int i=0; i<(zeros-num.length()); i++){
+			num = "0"+num;
+		}
+		return num;
+	}
+	
+	public static Registrar<City> cities = new Registrar<City>();
 
 	public Urbanization(JavaPlugin plugin, ModuleMeta meta) {
 		super(plugin, meta);
@@ -30,7 +38,6 @@ public class Urbanization extends EntropyModule {
 	@Override
 	protected void onEnable() {
 		log("Loading Urbanization...");
-		
 		
 	}
 	
