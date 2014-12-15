@@ -8,6 +8,7 @@ import me.capit.entropy.module.EntropyModule;
 import me.capit.entropy.module.ModuleMeta;
 import me.capit.urbanization.city.City;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Urbanization extends EntropyModule {
@@ -38,7 +39,12 @@ public class Urbanization extends EntropyModule {
 	@Override
 	protected void onEnable() {
 		log("Loading Urbanization...");
-		
+		FileConfiguration cit = getDataConfig("cities.yml");
+		for (String key : cit.getKeys(false)){
+			City c = (City) cit.get(key);
+			cities.register(c);
+			log("  Registered &5"+c.getName()+"&f.");
+		}
 	}
 	
 	@Override

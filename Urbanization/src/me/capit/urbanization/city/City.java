@@ -2,6 +2,7 @@ package me.capit.urbanization.city;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 
 import me.capit.entropy.EntropyLoader;
 import me.capit.entropy.Registerable;
@@ -17,15 +18,24 @@ public class City implements ConfigurationSerializable, Registerable {
 	public static final int rankZeros = 3;
 	
 	private String name,tag,motd,desc;
+	private int defaultGroup;
 	private Registrar<Group> groups = new Registrar<Group>();
+	public final UUID ID;
 	
-	public City(String name){
+	public City(String name, UUID owner) throws NullPointerException, IllegalArgumentException{
+		setName(name);
 		
+		groups.register(new Group(0, "Admin").addPermission("*").addPlayer(owner));
+		groups.register(new Group(maxGroups, "Default"));
+		defaultGroup = maxGroups;
+		
+		ID = UUID.randomUUID();
 	}
 	
 	@SuppressWarnings("unchecked")
 	public City(Map<String,Object> data) throws ClassCastException, NullPointerException, IllegalArgumentException{
 		setName((String) data.get("NAME"));
+		ID = UUID.fromString((String) data.get("ID"));
 		
 		setTag(data.containsKey("TAG") ? (String) data.get("TAG") : null);
 		setMOTD(data.containsKey("MOTD") ? (String) data.get("MOTD") : null);
@@ -47,9 +57,58 @@ public class City implements ConfigurationSerializable, Registerable {
 		else throw new IllegalArgumentException("Name does not match format!");
 	}
 	
+	// GROUP DATA
+	public Group getGroupAtRank(int rank){
+		for (Group g : groups.getRegistered()){
+			if (g.ID==rank) return getGroupAtString(g.getUniqueString());
+		}
+		return null;
+	}
+	public Group getGroupAtString(String ID){
+		return groups.getRegisteredObject(ID);
+	}
+	public Group getDefaultGroup(){
+		return getGroupAtRank(getDefaultGroupRank());
+	}
+	public int getDefaultGroupRank(){
+		return defaultGroup;
+	}
+	public void createNewGroup(int rank, String name){
+		if (rank>0 && rank<maxGroups) groups.register(new Group(rank,name));
+	}
+	
+	// PLAYER DATA
+	public void addPlayer(UUID player){
+		getDefaultGroup().addPlayer(player);
+	}
+	public boolean playerInCity(UUID player){
+		return getPlayerGroup(player)!=null;
+	}
+	public Group getPlayerGroup(UUID player){
+		for (Group g : groups.getRegistered()){
+			if (g.getPlayers().contains(player)) return g;
+		}
+		return null;
+	}
+	public void setPlayerGroup(UUID player, int rank){
+		if (rank>=0 && rank<maxGroups && playerInCity(player) && getGroupAtRank(rank)!=null){
+			getPlayerGroup(player).removePlayer(player);
+			getGroupAtRank(rank).addPlayer(player);
+		}
+	}
+	public void setOwner(UUID player){
+		if (!playerInCity(player)) return;
+		Group admin = getGroupAtRank(maxGroups);
+		UUID owner = admin.getPlayers().get(0);
+		admin.removePlayer(owner);
+		admin.addPlayer(player);
+		getDefaultGroup().removePlayer(player);
+		getDefaultGroup().addPlayer(owner);
+	}
+	
 	// MOTD DATA
 	public final String getMOTD(){
-		return motd!=null ? motd : "No MOTD set.";
+		return motd!=null ? motd : "";
 	}
 	public final void setMOTD(String motd){
 		this.motd=motd;
@@ -86,7 +145,7 @@ public class City implements ConfigurationSerializable, Registerable {
 	// INTERFACE OVERRIDES
 	@Override
 	public String getUniqueString() {
-		return name;
+		return ID.toString();
 	}
 
 	@Override

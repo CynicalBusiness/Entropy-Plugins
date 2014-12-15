@@ -8,23 +8,24 @@ import java.util.UUID;
 
 import me.capit.entropy.Registerable;
 import me.capit.urbanization.Urbanization;
+import me.capit.urbanization.city.City;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
-public abstract class Group implements ConfigurationSerializable, Registerable {
+public class Group implements ConfigurationSerializable, Registerable {
 	private static final long serialVersionUID = -4733520071370122570L;
 
-	public final short ID;
+	public final int ID;
 	
 	private String name;
 	private List<UUID> players;
 	private List<String> perms;
 	
-	public Group(short ID, String name){
+	public Group(int ID, String name){
 		this(ID,name,new ArrayList<UUID>(),new ArrayList<String>());
 	}
 	
-	public Group(short ID, String name, List<UUID> players, List<String> perms){
+	public Group(int ID, String name, List<UUID> players, List<String> perms){
 		this.ID = ID; this.name = name;
 		this.players = players;
 		this.perms = perms;
@@ -48,7 +49,7 @@ public abstract class Group implements ConfigurationSerializable, Registerable {
 	
 	@Override
 	public String getUniqueString() {
-		return "G"+Urbanization.addZerosToLength(String.valueOf(ID), 3);
+		return "G"+Urbanization.addZerosToLength(String.valueOf(ID), City.rankZeros);
 	}
 
 	@Override
@@ -67,20 +68,20 @@ public abstract class Group implements ConfigurationSerializable, Registerable {
 	public List<String> getPermissions(){
 		return perms;
 	}
-	public void addPermission(String perm){
-		perms.add(perm);
+	public Group addPermission(String perm){
+		perms.add(perm); return this;
 	}
-	public void removePermission(String perm){
-		perms.remove(perm);
+	public Group removePermission(String perm){
+		perms.remove(perm); return this;
 	}
 
 	public List<UUID> getPlayers(){
 		return players;
 	}
-	public void addPlayer(UUID player){
-		players.add(player);
+	public Group addPlayer(UUID player){
+		players.add(player); return this;
 	}
-	public void removePlayer(UUID player){
-		players.remove(player);
+	public Group removePlayer(UUID player){
+		players.remove(player); return this;
 	}
 }
