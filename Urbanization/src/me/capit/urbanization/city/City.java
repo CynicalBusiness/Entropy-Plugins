@@ -7,6 +7,7 @@ import java.util.UUID;
 import me.capit.entropy.EntropyLoader;
 import me.capit.entropy.Registerable;
 import me.capit.entropy.Registrar;
+import me.capit.entropy.economy.EconomyAccount;
 import me.capit.urbanization.Urbanization;
 import me.capit.urbanization.group.Group;
 
@@ -20,7 +21,10 @@ public class City implements ConfigurationSerializable, Registerable {
 	private String name,tag,motd,desc;
 	private int defaultGroup;
 	private Registrar<Group> groups = new Registrar<Group>();
+	private EconomyAccount account;
+	
 	public final UUID ID;
+	
 	
 	public City(String name, UUID owner) throws NullPointerException, IllegalArgumentException{
 		setName(name);
@@ -30,12 +34,15 @@ public class City implements ConfigurationSerializable, Registerable {
 		defaultGroup = maxGroups;
 		
 		ID = UUID.randomUUID();
+		account = EntropyLoader.getDataRegistry().getAccount("@"+ID.toString());
 	}
 	
 	@SuppressWarnings("unchecked")
 	public City(Map<String,Object> data) throws ClassCastException, NullPointerException, IllegalArgumentException{
 		setName((String) data.get("NAME"));
 		ID = UUID.fromString((String) data.get("ID"));
+		
+		account = EntropyLoader.getDataRegistry().getAccount("@"+ID.toString());
 		
 		setTag(data.containsKey("TAG") ? (String) data.get("TAG") : null);
 		setMOTD(data.containsKey("MOTD") ? (String) data.get("MOTD") : null);
@@ -140,6 +147,20 @@ public class City implements ConfigurationSerializable, Registerable {
 	}
 	public final void clearTag(){
 		setTag(null);
+	}
+	
+	// ECONOMY DATA
+	public final EconomyAccount getAccount(){
+		return account;
+	}
+	public final boolean hasFunds(double funds){
+		return getAccount().getAccountValue()>=funds;
+	}
+	public final boolean withdraw(double funds){
+		return getAccount().withdraw(funds);
+	}
+	public final void deposit(double funds){
+		getAccount().deposit(funds);
 	}
 	
 	// INTERFACE OVERRIDES
